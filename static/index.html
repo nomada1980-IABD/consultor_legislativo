@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consultor Legislativo España</title>
+  <style>
+    :root {
+      --red: #c60b1e;
+      --yellow: #ffc400;
+      --blue: #003087;
+      --bg: #f7f8fa;
+      --surface: #ffffff;
+      --border: #e0e3ea;
+      --text: #1a1d23;
+      --muted: #6b7280;
+      --accent: #003087;
+      --accent-light: #e8edf7;
+      --success: #16a34a;
+      --warning: #d97706;
+      --radius: 10px;
+      --shadow: 0 1px 4px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    header {
+      background: var(--blue);
+      color: #fff;
+      padding: 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 24px;
+      border-bottom: 3px solid var(--yellow);
+    }
+    .flag {
+      display: flex;
+      flex-direction: column;
+      width: 36px;
+      height: 24px;
+      border-radius: 2px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .flag-red { background: var(--red); height: 6px; }
+    .flag-yellow { background: var(--yellow); height: 12px; }
+    .flag-red2 { background: var(--red); height: 6px; }
+    .header-title { flex: 1; }
+    .header-title h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -.01em;
+    }
+    .header-title p {
+      font-size: .78rem;
+      opacity: .75;
+      margin-top: 1px;
+    }
+    #status-badge {
+      font-size: .72rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.15);
+      white-space: nowrap;
+    }
+    #status-badge.ready { background: rgba(22,163,74,.3); }
+    #status-badge.loading { background: rgba(255,196,0,.3); color: var(--yellow); }
+    .ai-badge {
+      font-size: .7rem; padding: 3px 9px;
+      border-radius: 20px; white-space: nowrap; font-weight: 600; display: none;
+    }
+    .ai-badge.local     { background: rgba(22,163,74,.35); color: #86efac; }
+    .ai-badge.hf        { background: rgba(255,107,53,.35); color: #fdb894; }
+    .ai-badge.anthropic { background: rgba(124,58,237,.35); color: #c4b5fd; }
+    .sem-badge { font-size: .73rem; padding: 2px 8px; background: #fff3ee;
+      color: #ea580c; border-radius: 20px; font-weight: 600; }
+
+    /* Search bar */
+    .search-bar {
+      padding: 14px 24px;
+      background: var(--blue);
+    }
+    .search-row {
+      display: flex;
+      gap: 8px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .search-input-wrap {
+      flex: 1;
+      position: relative;
+    }
+    .search-input-wrap svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+    #search-input {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      border: 2px solid rgba(255,255,255,.25);
+      border-radius: var(--radius);
+      font-size: 1rem;
+      background: rgba(255,255,255,.12);
+      color: #fff;
+      outline: none;
+      transition: border-color .2s, background .2s;
+    }
+    #search-input::placeholder { color: rgba(255,255,255,.5); }
+    #search-input:focus {
+      border-color: var(--yellow);
+      background: rgba(255,255,255,.18);
+    }
+    #ask-btn {
+      padding: 12px 20px;
+      background: var(--yellow);
+      color: #1a1202;
+      font-weight: 700;
+      font-size: .9rem;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity .2s, transform .1s;
+    }
+    #ask-btn:hover { opacity: .9; }
+    #ask-btn:active { transform: scale(.97); }
+    #ask-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* Filters */
+    .filters {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 24px;
+    }
+    .filters-inner {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      max-width: 900px;
+      margin: 0 auto;
+      align-items: center;
+    }
+    .filters-inner label {
+      font-size: .8rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .filter-select {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: .85rem;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+    }
+    .filter-select:focus { border-color: var(--accent); }
+    .filter-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: .8rem;
+      padding: 5px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .filter-tag.active {
+      background: var(--accent-light);
+      color: var(--accent);
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+    .clear-btn {
+      margin-left: auto;
+      font-size: .8rem;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    /* Main layout */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px 24px 40px;
+    }
+
+    /* AI Answer panel */
+    #ai-panel {
+      background: linear-gradient(135deg, #eef2ff 0%, #f0f9ff 100%);
+      border: 1px solid #c7d2fe;
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    #ai-panel.visible { display: block; }
+    .ai-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .ai-icon {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .ai-icon svg { color: #fff; }
+    .ai-header h3 { font-size: .95rem; color: var(--accent); font-weight: 700; }
+    .ai-header .ai-q { font-size: .8rem; color: var(--muted); margin-top: 1px; }
+    #ai-answer {
+      font-size: .92rem;
+      line-height: 1.65;
+      color: var(--text);
+    }
+    #ai-answer p { margin: 0 0 .7em; }
+    #ai-answer p:last-child { margin-bottom: 0; }
+    #ai-answer ul, #ai-answer ol { margin: .3em 0 .8em; padding-left: 1.4em; }
+    #ai-answer li { margin: .2em 0; }
+    #ai-answer .ai-h {
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 1em 0 .35em;
+    }
+    #ai-answer strong { font-weight: 700; color: var(--text); }
+    #ai-answer code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: .85em;
+      background: rgba(0,0,0,.06);
+      padding: .08em .35em;
+      border-radius: 4px;
+    }
+    .ai-loading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Section titles */
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .section-head h2 {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+    .count-badge {
+      font-size: .78rem;
+      padding: 2px 8px;
+      background: var(--accent-light);
+      color: var(--accent);
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    /* Result cards */
+    .results-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .doc-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      cursor: pointer;
+      transition: border-color .15s, box-shadow .15s;
+      box-shadow: var(--shadow);
+    }
+    .doc-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 2px 8px rgba(0,48,135,.1);
+    }
+    .doc-card-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .rank-badge {
+      font-size: .7rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .rank-ley { background: #fef3c7; color: #92400e; }
+    .rank-ley_organica { background: #fde8ff; color: #6b21a8; }
+    .rank-real_decreto_ley { background: #fee2e2; color: #991b1b; }
+    .rank-decreto_ley { background: #fecaca; color: #991b1b; }
+    .rank-decreto_legislativo { background: #ffe4e6; color: #9f1239; }
+    .rank-real_decreto { background: #ffedd5; color: #9a3412; }
+    .rank-decreto { background: #fef9c3; color: #854d0e; }
+    .rank-orden,
+    .rank-orden_ministerial { background: #e0f2fe; color: #075985; }
+    .rank-resolucion { background: #dcfce7; color: #166534; }
+    .rank-circular,
+    .rank-instruccion { background: #f0fdf4; color: #15803d; }
+    .rank-reglamento { background: #ede9fe; color: #5b21b6; }
+    .rank-estatuto { background: #fdf4ff; color: #7e22ce; }
+    .rank-default { background: #f3f4f6; color: #374151; }
+
+    .doc-title {
+      font-size: .92rem;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    .doc-meta {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-size: .78rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .doc-meta span { display: flex; align-items: center; gap: 4px; }
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .status-dot.in_force { background: var(--success); }
+    .status-dot.other { background: var(--warning); }
+
+    .doc-subjects {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .subject-tag {
+      font-size: .72rem;
+      padding: 2px 7px;
+      background: var(--accent-light);
+      color: var(--accent);
+      border-radius: 4px;
+    }
+
+    .doc-preview {
+      font-size: .82rem;
+      color: var(--muted);
+      line-height: 1.55;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .doc-links {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .doc-link {
+      font-size: .78rem;
+      color: var(--accent);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+    }
+    .doc-link:hover { text-decoration: underline; }
+
+    /* Detail modal */
+    #modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.4);
+      z-index: 200;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 16px;
+      overflow-y: auto;
+    }
+    #modal-overlay.open { display: flex; }
+    #modal {
+      background: var(--surface);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 760px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      padding: 28px;
+      position: relative;
+    }
+    #modal-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 32px; height: 32px;
+      border: none;
+      background: var(--bg);
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #modal-close:hover { background: var(--border); }
+    #modal h2 { font-size: 1.05rem; line-height: 1.4; margin-bottom: 14px; padding-right: 36px; }
+    .modal-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .meta-pill {
+      font-size: .78rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .meta-pill strong { color: var(--text); }
+    #modal-content {
+      font-size: .88rem;
+      line-height: 1.7;
+      color: #374151;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .modal-links { display: flex; gap: 12px; margin-top: 16px; }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 7px;
+      text-decoration: none;
+      font-size: .85rem;
+      font-weight: 600;
+      transition: opacity .15s;
+    }
+    .btn-primary:hover { opacity: .85; }
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border: 1.5px solid var(--accent);
+      color: var(--accent);
+      border-radius: 7px;
+      text-decoration: none;
+      font-size: .85rem;
+      font-weight: 600;
+      background: transparent;
+      transition: background .15s;
+    }
+    .btn-outline:hover { background: var(--accent-light); }
+    .btn-primary:disabled, .btn-outline:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* Generador de documentos */
+    #ai-actions { margin-top: 14px; display: none; gap: 10px; flex-wrap: wrap; }
+    .doc-field { margin-bottom: 14px; }
+    .doc-field label {
+      display: block;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+    .doc-field label .req { color: #b91c1c; }
+    .doc-field input, .doc-field textarea {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: .9rem;
+      font-family: inherit;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .doc-field input:focus, .doc-field textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .doc-field textarea { min-height: 80px; resize: vertical; }
+    .doc-type-select { margin-bottom: 18px; }
+    .doc-type-desc { font-size: .82rem; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+    .doc-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+    .doc-notice {
+      font-size: .8rem;
+      color: var(--muted);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .doc-result { border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px; }
+
+    /* Empty / loading states */
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--muted);
+    }
+    .empty-state svg { margin-bottom: 14px; color: var(--border); }
+    .empty-state h3 { font-size: 1rem; margin-bottom: 6px; color: var(--text); }
+    .empty-state p { font-size: .87rem; }
+
+    /* Suggestions */
+    .suggestions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .suggestion-chip {
+      font-size: .82rem;
+      padding: 7px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      cursor: pointer;
+      color: var(--text);
+      transition: all .15s;
+      box-shadow: var(--shadow);
+    }
+    .suggestion-chip:hover {
+      background: var(--accent-light);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .header-top { padding: 12px 14px; }
+      .search-bar { padding: 12px 14px; }
+      .filters { padding: 8px 14px; }
+      main { padding: 14px 14px 32px; }
+      .search-row { flex-direction: column; }
+      #ask-btn { width: 100%; }
+      #modal { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="flag">
+      <div class="flag-red"></div>
+      <div class="flag-yellow"></div>
+      <div class="flag-red2"></div>
+    </div>
+    <div class="header-title">
+      <h1>Consultor Legislativo España</h1>
+      <p>Base de datos BOE · Legislación nacional y autonómica</p>
+    </div>
+    <span id="ai-badge" class="ai-badge"></span>
+    <div id="status-badge" class="loading">Cargando índice…</div>
+  </div>
+
+  <div class="search-bar">
+    <div class="search-row">
+      <div class="search-input-wrap">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input id="search-input" type="text" autocomplete="off" spellcheck="false"
+               placeholder="Busca una ley, consulta sobre pensiones, alquiler, impuestos…" />
+      </div>
+      <button id="ask-btn" title="Consultar con IA">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline;vertical-align:middle;margin-right:4px">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        Consultar IA
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="filters">
+  <div class="filters-inner">
+    <label>Filtros:</label>
+    <select class="filter-select" id="f-region">
+      <option value="">Todas las CC.AA.</option>
+    </select>
+    <select class="filter-select" id="f-rank">
+      <option value="">Todos los tipos</option>
+    </select>
+    <span class="filter-tag" id="f-status" data-val="">
+      <span class="status-dot in_force"></span>
+      Solo vigentes
+    </span>
+    <span class="filter-tag" id="f-semantic" title="Re-ordena usando embeddings HuggingFace" style="display:none">
+      🔬 Semántica
+    </span>
+    <button class="filter-tag" id="attach-btn" type="button" title="Adjuntar resolución, contrato o informe (PDF/DOCX/TXT)">
+      📎 Adjuntar documento
+    </button>
+    <input type="file" id="attach-file-input" accept=".pdf,.docx,.txt,.md,.csv" style="display:none" />
+    <div id="adjunto-badge" style="display:none;align-items:center;gap:6px;background:#eef2ff;border:1px solid #c7d2fe;padding:4px 10px;border-radius:20px;font-size:.8rem;color:var(--accent);">
+      <span id="adjunto-filename">📎 documento.pdf</span>
+      <button id="remove-adjunto-btn" type="button" style="border:none;background:none;cursor:pointer;color:#ef4444;font-weight:bold;padding:0 2px;">✕</button>
+    </div>
+    <button class="clear-btn" id="clear-btn">Limpiar filtros</button>
+    <button class="btn-outline" id="gen-doc-btn-top" type="button" style="margin-left:auto;padding:6px 14px;font-size:.82rem;">📄 Generar documento</button>
+  </div>
+</div>
+
+<main>
+  <!-- AI Panel -->
+  <div id="ai-panel">
+    <div class="ai-header">
+      <div class="ai-icon">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </div>
+      <div>
+        <h3>Respuesta del Asistente Jurídico
+          <span id="sem-badge-ai" class="sem-badge" style="display:none;margin-left:8px">🔬 Semántica</span>
+        </h3>
+        <div class="ai-q" id="ai-question-label"></div>
+      </div>
+    </div>
+    <div id="ai-answer"></div>
+    <div id="ai-actions" style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn-outline" id="copy-ai-btn" type="button">📋 Copiar respuesta</button>
+      <button class="btn-outline" id="gen-doc-btn" type="button">📄 Generar documento (solicitud, queja, recurso…)</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results-section">
+    <!-- populated by JS -->
+  </div>
+</main>
+
+<!-- Detail Modal -->
+<div id="modal-overlay">
+  <div id="modal">
+    <button id="modal-close">✕</button>
+    <h2 id="modal-title"></h2>
+    <div class="modal-meta" id="modal-meta"></div>
+    <div class="modal-links" id="modal-links"></div>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- Document Generator Modal -->
+<div id="doc-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;">
+  <div id="modal" style="position:relative;">
+    <button id="doc-close" style="position:absolute;top:16px;right:16px;width:32px;height:32px;border:none;background:var(--bg);border-radius:50%;cursor:pointer;font-size:1.1rem;color:var(--muted);">✕</button>
+    <h2 style="padding-right:36px;">Generar documento</h2>
+    <div class="doc-notice">
+      Rellena los datos del escrito. El documento es un <strong>borrador</strong> generado
+      automáticamente; revísalo y consulta con un profesional antes de presentarlo.
+    </div>
+    <div class="doc-type-select">
+      <label class="doc-field" style="margin:0;">
+        <span style="font-size:.82rem;font-weight:600;display:block;margin-bottom:5px;">Tipo de documento</span>
+        <select id="doc-type" class="filter-select" style="width:100%;"></select>
+      </label>
+      <div class="doc-type-desc" id="doc-type-desc"></div>
+    </div>
+    <form id="doc-form"></form>
+    <div class="doc-actions">
+      <button class="btn-primary" id="doc-submit" type="button">Generar</button>
+      <button class="btn-outline" id="doc-cancel" type="button">Cancelar</button>
+    </div>
+    <div class="doc-result" id="doc-result" style="display:none;"></div>
+  </div>
+</div>
+
+<script>
+// -------------------------------------------------------------------
+// State
+// -------------------------------------------------------------------
+let appReady       = false;
+let hasAI          = false;
+let aiProvider     = 'none';
+let aiModel        = '';
+let hasSemantic    = false;
+let filterSemantic = false;
+let allRegions     = {};
+let allRanks       = {};
+let debounceTimer  = null;
+let filterStatus   = false;
+let currentAdjuntoId = null;
+let lastAIResponseText = '';
+
+const SUGGESTIONS = [
+  "¿Cómo tributan las ayudas DANA?",
+  "Ley de arrendamientos urbanos",
+  "Ley Orgánica de Protección de Datos",
+  "Impuesto sobre la Renta personas físicas",
+  "Ley de dependencia",
+  "Permisos de paternidad y maternidad",
+  "Ley de Sociedades de Capital",
+  "Prestaciones por desempleo",
+];
+
+// -------------------------------------------------------------------
+// Init
+// -------------------------------------------------------------------
+async function init() {
+  await pollStatus();
+  populateFilters();
+  renderHome();
+  bindEvents();
+  loadDocTypes();
+}
+
+async function pollStatus() {
+  try {
+    const res = await fetch('/api/status');
+    const data = await res.json();
+    appReady    = data.ready;
+    hasAI       = data.has_ai;
+    aiProvider  = data.ai_provider  || 'none';
+    aiModel     = data.ai_model     || '';
+    hasSemantic = data.has_semantic || false;
+    allRegions  = data.regions      || {};
+    allRanks    = data.ranks        || {};
+    updateStatusBadge(data);
+    if (!appReady) {
+      setTimeout(pollStatus, 1500);
+    }
+  } catch (e) {
+    setTimeout(pollStatus, 2000);
+  }
+}
+
+function updateStatusBadge(data) {
+  const badge = document.getElementById('status-badge');
+  if (data.ready) {
+    badge.textContent = `${data.total_docs.toLocaleString('es')} normas`;
+    badge.className = 'ready';
+    document.getElementById('ask-btn').disabled = false;
+  } else {
+    const pct = data.total_files > 0
+      ? Math.round(data.total_docs / data.total_files * 100) : 0;
+    badge.textContent = `Indexando… ${pct}%`;
+    badge.className = 'loading';
+    setTimeout(pollStatus, 1200);
+  }
+  // AI provider badge
+  const ab = document.getElementById('ai-badge');
+  if (data.ai_provider === 'local') {
+    ab.textContent = '🖥️ IA local'; ab.className = 'ai-badge local'; ab.style.display = '';
+  } else if (data.ai_provider === 'huggingface') {
+    ab.textContent = '🤗 HuggingFace'; ab.className = 'ai-badge hf'; ab.style.display = '';
+  } else if (data.ai_provider === 'anthropic') {
+    ab.textContent = '✦ Claude'; ab.className = 'ai-badge anthropic'; ab.style.display = '';
+  } else {
+    ab.style.display = 'none';
+  }
+  // Semantic toggle visibility
+  document.getElementById('f-semantic').style.display = data.has_semantic ? '' : 'none';
+}
+
+function populateFilters() {
+  const rSel = document.getElementById('f-region');
+  Object.entries(allRegions)
+    .sort((a, b) => a[1].localeCompare(b[1]))
+    .forEach(([k, v]) => {
+      const opt = document.createElement('option');
+      opt.value = k; opt.textContent = v;
+      rSel.appendChild(opt);
+    });
+
+  const tSel = document.getElementById('f-rank');
+  Object.entries(allRanks)
+    .sort((a, b) => a[1].localeCompare(b[1]))
+    .forEach(([k, v]) => {
+      const opt = document.createElement('option');
+      opt.value = k; opt.textContent = v;
+      tSel.appendChild(opt);
+    });
+}
+
+function renderHome() {
+  const sec = document.getElementById('results-section');
+  sec.innerHTML = `
+    <div class="section-head" style="margin-bottom:12px">
+      <h2>Consultas frecuentes</h2>
+    </div>
+    <div class="suggestions">
+      ${SUGGESTIONS.map(s => `<span class="suggestion-chip" onclick="applySuggestion('${s.replace(/'/g,"\\'")}')">
+        ${s}
+      </span>`).join('')}
+    </div>
+    <div class="empty-state">
+      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      </svg>
+      <h3>Busca cualquier norma española</h3>
+      <p>Escribe en la barra de arriba o pulsa una consulta frecuente.<br>
+         Puedes preguntar en lenguaje natural o buscar por título, materia o número BOE.</p>
+    </div>`;
+}
+
+function applySuggestion(text) {
+  document.getElementById('search-input').value = text;
+  triggerAsk();
+}
+
+// -------------------------------------------------------------------
+// Events
+// -------------------------------------------------------------------
+function bindEvents() {
+  const input = document.getElementById('search-input');
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { clearTimeout(debounceTimer); triggerAsk(); }
+  });
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(triggerSearch, 350);
+  });
+
+  document.getElementById('ask-btn').addEventListener('click', () => {
+    clearTimeout(debounceTimer);
+    triggerAsk();
+  });
+
+  document.getElementById('f-region').addEventListener('change', triggerSearch);
+  document.getElementById('f-rank').addEventListener('change', triggerSearch);
+  document.getElementById('f-status').addEventListener('click', () => {
+    filterStatus = !filterStatus;
+    document.getElementById('f-status').classList.toggle('active', filterStatus);
+    triggerSearch();
+  });
+  document.getElementById('f-semantic').addEventListener('click', () => {
+    if (!hasSemantic) return;
+    filterSemantic = !filterSemantic;
+    document.getElementById('f-semantic').classList.toggle('active', filterSemantic);
+    triggerSearch();
+  });
+  document.getElementById('clear-btn').addEventListener('click', clearFilters);
+
+  // Adjuntos
+  document.getElementById('attach-btn').addEventListener('click', () => {
+    document.getElementById('attach-file-input').click();
+  });
+  document.getElementById('attach-file-input').addEventListener('change', handleFileUpload);
+  document.getElementById('remove-adjunto-btn').addEventListener('click', clearAttachment);
+
+  // Copia de respuesta IA
+  document.getElementById('copy-ai-btn').addEventListener('click', () => {
+    if (!lastAIResponseText) return;
+    navigator.clipboard.writeText(lastAIResponseText);
+    const btn = document.getElementById('copy-ai-btn');
+    const old = btn.textContent;
+    btn.textContent = '✓ Copiado';
+    setTimeout(() => btn.textContent = old, 2000);
+  });
+
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  });
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeDocModal(); } });
+
+  // Generador de documentos
+  document.getElementById('gen-doc-btn').addEventListener('click', openDocModal);
+  document.getElementById('gen-doc-btn-top').addEventListener('click', openDocModal);
+  document.getElementById('doc-close').addEventListener('click', closeDocModal);
+  document.getElementById('doc-cancel').addEventListener('click', closeDocModal);
+  document.getElementById('doc-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('doc-overlay')) closeDocModal();
+  });
+  document.getElementById('doc-type').addEventListener('change', renderDocForm);
+  document.getElementById('doc-submit').addEventListener('click', submitDoc);
+}
+
+async function handleFileUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('file', file);
+  try {
+    const res = await fetch('/api/adjunto', {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      alert(err.detail || 'Error al subir el archivo.');
+      return;
+    }
+    const data = await res.json();
+    currentAdjuntoId = data.adjunto_id;
+    document.getElementById('adjunto-filename').textContent = `📎 ${data.nombre}`;
+    document.getElementById('adjunto-badge').style.display = 'flex';
+  } catch (err) {
+    alert('Error al subir el archivo adjunto.');
+  } finally {
+    e.target.value = '';
+  }
+}
+
+function clearAttachment() {
+  currentAdjuntoId = null;
+  document.getElementById('adjunto-badge').style.display = 'none';
+}
+
+function clearFilters() {
+  document.getElementById('f-region').value = '';
+  document.getElementById('f-rank').value = '';
+  filterStatus   = false;
+  filterSemantic = false;
+  document.getElementById('f-status').classList.remove('active');
+  document.getElementById('f-semantic').classList.remove('active');
+  triggerSearch();
+}
+
+// -------------------------------------------------------------------
+// Search
+// -------------------------------------------------------------------
+async function triggerSearch() {
+  const q = document.getElementById('search-input').value.trim();
+  if (!q) { hideAI(); renderHome(); return; }
+  if (!appReady) return;
+
+  const params = buildParams(q);
+  showResultsLoading();
+
+  try {
+    const res = await fetch('/api/search?' + params);
+    const data = await res.json();
+    renderResults(data.results, data.query, data.total);
+  } catch (e) {
+    showError('Error al realizar la búsqueda.');
+  }
+}
+
+async function triggerAsk() {
+  const q = document.getElementById('search-input').value.trim();
+  if (!q) return;
+  if (!appReady) return;
+
+  if (!hasAI) {
+    triggerSearch();
+    return;
+  }
+
+  showAILoading(q);
+  showResultsLoading();
+
+  const body = {
+    question: q,
+    region: document.getElementById('f-region').value || null,
+    rank: document.getElementById('f-rank').value || null,
+    status: filterStatus ? 'in_force' : null,
+    semantic: filterSemantic || hasSemantic,
+    adjunto_id: currentAdjuntoId || null,
+  };
+
+  try {
+    const res = await fetch('/api/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+
+    if (data.ai_answer) {
+      renderAIAnswer(q, data.ai_answer, data.semantic);
+    } else {
+      hideAI();
+    }
+    renderResults(data.sources, q, data.sources.length);
+  } catch (e) {
+    hideAI();
+    showError('Error al consultar la IA.');
+  }
+}
+
+function buildParams(q) {
+  const p = new URLSearchParams({ q });
+  const region = document.getElementById('f-region').value;
+  const rank = document.getElementById('f-rank').value;
+  if (region) p.set('region', region);
+  if (rank) p.set('rank', rank);
+  if (filterStatus) p.set('status', 'in_force');
+  if (filterSemantic) p.set('semantic', 'true');
+  return p.toString();
+}
+
+// -------------------------------------------------------------------
+// Render helpers
+// -------------------------------------------------------------------
+function showResultsLoading() {
+  document.getElementById('results-section').innerHTML = `
+    <div class="empty-state">
+      <div class="spinner" style="margin:0 auto 12px"></div>
+      <p>Buscando en la base de datos…</p>
+    </div>`;
+}
+
+function showError(msg) {
+  document.getElementById('results-section').innerHTML = `
+    <div class="empty-state">
+      <h3>Error</h3><p>${msg}</p>
+    </div>`;
+}
+
+function renderResults(results, query, total) {
+  const sec = document.getElementById('results-section');
+  if (!results || results.length === 0) {
+    sec.innerHTML = `
+      <div class="empty-state">
+        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <h3>Sin resultados</h3>
+        <p>No se encontraron normas para "<strong>${escHtml(query)}</strong>".<br>
+           Prueba con términos más generales o cambia los filtros.</p>
+      </div>`;
+    return;
+  }
+
+  const label = total === 1 ? '1 norma encontrada' : `${total} normas encontradas`;
+  sec.innerHTML = `
+    <div class="section-head">
+      <h2>Resultados</h2>
+      <span class="count-badge">${label}</span>
+    </div>
+    <div class="results-list">
+      ${results.map(d => renderCard(d)).join('')}
+    </div>`;
+}
+
+function renderCard(doc) {
+  const rankClass = `rank-${doc.rank || 'default'}`;
+  const statusDot = doc.status === 'in_force'
+    ? '<span class="status-dot in_force"></span> Vigente'
+    : `<span class="status-dot other"></span> ${doc.status || ''}`;
+
+  const subjects = (doc.subjects || []).slice(0, 4)
+    .map(s => `<span class="subject-tag">${escHtml(s)}</span>`).join('');
+
+  const date = doc.publication_date
+    ? new Date(doc.publication_date).toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' })
+    : '';
+
+  return `
+    <div class="doc-card" onclick="openModal('${escAttr(doc.identifier)}')">
+      <div class="doc-card-head">
+        <span class="rank-badge ${rankClass}">${escHtml(doc.rank_label || doc.rank || 'Norma')}</span>
+        <div class="doc-title">${escHtml(doc.title)}</div>
+      </div>
+      <div class="doc-meta">
+        ${date ? `<span>📅 ${date}</span>` : ''}
+        <span>${statusDot}</span>
+        <span>🏛️ ${escHtml(doc.region || doc.region_code || '')}</span>
+        ${doc.identifier ? `<span>🔖 ${escHtml(doc.identifier)}</span>` : ''}
+      </div>
+      ${subjects ? `<div class="doc-subjects">${subjects}</div>` : ''}
+      ${doc.preview ? `<div class="doc-preview">${escHtml(doc.preview)}</div>` : ''}
+      <div class="doc-links" onclick="event.stopPropagation()">
+        ${doc.source ? `<a class="doc-link" href="${escAttr(doc.source)}" target="_blank" rel="noopener">
+          🔗 Ver en BOE.es</a>` : ''}
+        ${doc.pdf_url ? `<a class="doc-link" href="${escAttr(doc.pdf_url)}" target="_blank" rel="noopener">
+          📄 PDF</a>` : ''}
+      </div>
+    </div>`;
+}
+
+// -------------------------------------------------------------------
+// AI panel
+// -------------------------------------------------------------------
+function showAILoading(q) {
+  const panel = document.getElementById('ai-panel');
+  document.getElementById('ai-question-label').textContent = q;
+  document.getElementById('ai-answer').innerHTML = `
+    <div class="ai-loading">
+      <div class="spinner"></div>
+      Analizando legislación relevante…
+    </div>`;
+  panel.classList.add('visible');
+}
+
+function renderAIAnswer(q, answer, semantic) {
+  lastAIResponseText = answer;
+  document.getElementById('ai-question-label').textContent = q;
+  document.getElementById('ai-answer').innerHTML = renderMarkdown(answer);
+  document.getElementById('ai-panel').classList.add('visible');
+  document.getElementById('ai-actions').style.display = 'flex';
+  const sb = document.getElementById('sem-badge-ai');
+  if (sb) sb.style.display = semantic ? '' : 'none';
+}
+
+// Renderiza un subconjunto seguro de Markdown a HTML. Escapa SIEMPRE el texto
+// antes de aplicar formato, así el contenido del modelo no puede inyectar HTML.
+function renderMarkdown(src) {
+  if (!src) return '';
+  const inline = (t) => escHtml(t)
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  const lines = String(src).replace(/\r\n/g, '\n').split('\n');
+  let html = '', listType = null, para = [];
+  const closeList = () => { if (listType) { html += '</' + listType + '>'; listType = null; } };
+  const flushPara = () => { if (para.length) { html += '<p>' + para.join('<br>') + '</p>'; para = []; } };
+
+  for (const raw of lines) {
+    const line = raw.replace(/\s+$/, '');
+    if (!line.trim()) { flushPara(); closeList(); continue; }
+    let m;
+    if ((m = line.match(/^\s*#{1,4}\s+(.*)$/))) {
+      flushPara(); closeList();
+      html += '<h4 class="ai-h">' + inline(m[1]) + '</h4>';
+    } else if ((m = line.match(/^\s*[-*]\s+(.*)$/))) {
+      flushPara();
+      if (listType !== 'ul') { closeList(); html += '<ul>'; listType = 'ul'; }
+      html += '<li>' + inline(m[1]) + '</li>';
+    } else if ((m = line.match(/^\s*\d+[.)]\s+(.*)$/))) {
+      flushPara();
+      if (listType !== 'ol') { closeList(); html += '<ol>'; listType = 'ol'; }
+      html += '<li>' + inline(m[1]) + '</li>';
+    } else {
+      closeList();
+      para.push(inline(line.trim()));
+    }
+  }
+  flushPara(); closeList();
+  return html;
+}
+
+function hideAI() {
+  document.getElementById('ai-panel').classList.remove('visible');
+  document.getElementById('ai-actions').style.display = 'none';
+}
+
+// -------------------------------------------------------------------
+// Generador de documentos
+// -------------------------------------------------------------------
+let docTypes = [];
+
+async function loadDocTypes() {
+  try {
+    const res = await fetch('/api/doc-types');
+    const data = await res.json();
+    docTypes = data.types || [];
+    const sel = document.getElementById('doc-type');
+    sel.innerHTML = docTypes.map(t => `<option value="${t.id}">${escHtml(t.label)}</option>`).join('');
+  } catch { /* el botón seguirá, pero sin tipos */ }
+}
+
+function openDocModal() {
+  document.getElementById('doc-result').style.display = 'none';
+  renderDocForm();
+  document.getElementById('doc-overlay').style.display = 'flex';
+}
+
+function closeDocModal() {
+  document.getElementById('doc-overlay').style.display = 'none';
+}
+
+function renderDocForm() {
+  const typeId = document.getElementById('doc-type').value || (docTypes[0] && docTypes[0].id);
+  const t = docTypes.find(x => x.id === typeId);
+  if (!t) return;
+  document.getElementById('doc-type-desc').textContent = t.description || '';
+
+  // Prerrellena el asunto con la última pregunta a la IA, si la hay.
+  const lastQ = document.getElementById('ai-question-label').textContent || '';
+
+  document.getElementById('doc-form').innerHTML = t.fields.map(f => {
+    const req = f.required ? ' <span class="req">*</span>' : '';
+    const prefill = (f.name === 'asunto' && lastQ) ? escAttr(lastQ) : '';
+    const control = f.multiline
+      ? `<textarea name="${f.name}"></textarea>`
+      : `<input type="text" name="${f.name}" value="${prefill}">`;
+    return `<div class="doc-field"><label>${escHtml(f.label)}${req}</label>${control}</div>`;
+  }).join('');
+}
+
+async function submitDoc() {
+  const typeId = document.getElementById('doc-type').value;
+  const form = document.getElementById('doc-form');
+  const datos = {};
+  form.querySelectorAll('input, textarea').forEach(el => { datos[el.name] = el.value.trim(); });
+
+  const btn = document.getElementById('doc-submit');
+  btn.disabled = true;
+  btn.textContent = 'Generando…';
+  const resultBox = document.getElementById('doc-result');
+  resultBox.style.display = 'block';
+  resultBox.innerHTML = '<div class="ai-loading"><div class="spinner"></div>Redactando y compilando…</div>';
+
+  try {
+    const res = await fetch('/api/generar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ doc_type: typeId, datos, use_ai: hasAI, adjunto_id: currentAdjuntoId || null }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      resultBox.innerHTML = `<p style="color:#b91c1c;font-size:.85rem;">${escHtml(err.detail || 'Error al generar el documento.')}</p>`;
+      return;
+    }
+    const data = await res.json();
+    const links = [`<a class="btn-outline" href="/api/generar/${data.doc_id}.tex" target="_blank">⬇︎ Descargar .tex (LaTeX)</a>`];
+    if (data.pdf_available) {
+      links.unshift(`<a class="btn-primary" href="/api/generar/${data.doc_id}.pdf" target="_blank">⬇︎ Descargar PDF</a>`);
+    }
+    const aiNote = data.used_ai
+      ? 'Redacción asistida por IA con la normativa encontrada.'
+      : 'Documento generado con tus datos (sin redacción IA).';
+    const errDetails = data.compile_error
+      ? `<details style="margin-top:10px;text-align:left;background:#fef2f2;border:1px solid #fecaca;padding:8px 12px;border-radius:6px;font-size:.78rem;color:#991b1b;"><summary style="cursor:pointer;font-weight:600;">Ver detalle del error XeLaTeX</summary><pre style="white-space:pre-wrap;margin-top:6px;max-height:150px;overflow-y:auto;">${escHtml(data.compile_error)}</pre></details>`
+      : '';
+    const pdfNote = data.pdf_available ? '' :
+      `<p style="font-size:.8rem;color:var(--muted);margin-top:8px;">No se pudo compilar el PDF en el servidor; descarga el .tex y compílalo con XeLaTeX.</p>${errDetails}`;
+    resultBox.innerHTML = `
+      <p style="font-size:.85rem;color:var(--text);margin-bottom:6px;font-weight:600;">✓ Documento generado</p>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:12px;">${aiNote}</p>
+      <div class="modal-links">${links.join('')}</div>${pdfNote}`;
+  } catch {
+    resultBox.innerHTML = '<p style="color:#b91c1c;font-size:.85rem;">Error de red al generar el documento.</p>';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Generar';
+  }
+}
+
+// -------------------------------------------------------------------
+// Modal
+// -------------------------------------------------------------------
+async function openModal(identifier) {
+  if (!identifier) return;
+  const overlay = document.getElementById('modal-overlay');
+  overlay.classList.add('open');
+  document.getElementById('modal-title').textContent = 'Cargando…';
+  document.getElementById('modal-meta').innerHTML = '';
+  document.getElementById('modal-links').innerHTML = '';
+  document.getElementById('modal-content').textContent = '';
+
+  try {
+    const res = await fetch(`/api/doc/${encodeURIComponent(identifier)}`);
+    if (!res.ok) throw new Error('Not found');
+    const doc = await res.json();
+    renderModal(doc);
+  } catch {
+    document.getElementById('modal-title').textContent = 'No se pudo cargar el documento.';
+  }
+}
+
+function renderModal(doc) {
+  document.getElementById('modal-title').textContent = doc.title || 'Sin título';
+
+  const date = doc.publication_date
+    ? new Date(doc.publication_date).toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' })
+    : '';
+
+  const pills = [
+    doc.rank_label && `<span class="meta-pill"><strong>Tipo:</strong> ${escHtml(doc.rank_label)}</span>`,
+    date && `<span class="meta-pill"><strong>Publicación:</strong> ${date}</span>`,
+    doc.status && `<span class="meta-pill"><strong>Estado:</strong> ${doc.status === 'in_force' ? '✅ Vigente' : doc.status}</span>`,
+    doc.department && `<span class="meta-pill"><strong>Departamento:</strong> ${escHtml(doc.department)}</span>`,
+    doc.region && `<span class="meta-pill"><strong>Ámbito:</strong> ${escHtml(doc.region)}</span>`,
+    doc.official_number && `<span class="meta-pill"><strong>Número:</strong> ${escHtml(doc.official_number)}</span>`,
+    doc.identifier && `<span class="meta-pill"><strong>BOE:</strong> ${escHtml(doc.identifier)}</span>`,
+  ].filter(Boolean).join('');
+
+  document.getElementById('modal-meta').innerHTML = pills;
+
+  const links = [];
+  if (doc.source) links.push(`<a class="btn-primary" href="${escAttr(doc.source)}" target="_blank" rel="noopener">🔗 Ver en BOE.es</a>`);
+  if (doc.pdf_url) links.push(`<a class="btn-outline" href="${escAttr(doc.pdf_url)}" target="_blank" rel="noopener">📄 Descargar PDF</a>`);
+  document.getElementById('modal-links').innerHTML = links.join('');
+
+  const content = doc.full_content || doc.preview || '(Sin contenido disponible)';
+  document.getElementById('modal-content').textContent = content;
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+// -------------------------------------------------------------------
+// Utils
+// -------------------------------------------------------------------
+function escHtml(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+function escAttr(s) {
+  if (!s) return '#';
+  return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// -------------------------------------------------------------------
+// Boot
+// -------------------------------------------------------------------
+init();
+</script>
+</body>
+</html>

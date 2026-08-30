@@ -1,0 +1,27 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Entorno virtual
+.venv/
+venv/
+
+# Corpus: se descarga con ./setup-corpus.sh, no se versiona
+legalize-es/
+
+# Índices derivados del corpus (cientos de MB), se reconstruyen solos
+.cache/
+
+# Modelos GGUF locales (varios GB) — se descargan, no se versionan
+models/
+
+# Secretos / configuración local
+.env
+.env.*
+!.env.example
+
+# Artefactos generados
+legalize_docs/
+*.aux
+*.log
+*.out
