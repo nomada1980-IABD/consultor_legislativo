@@ -17,9 +17,19 @@ if [ -d "$CORPUS_DIR/.git" ]; then
   git -C "$CORPUS_DIR" pull --ff-only --depth 1 origin HEAD
 else
   if [ -e "$CORPUS_DIR" ] && [ -n "$(ls -A "$CORPUS_DIR" 2>/dev/null)" ]; then
-    echo "❌ $CORPUS_DIR existe y no está vacío, pero no es un clon de git."
-    echo "   Si ya tienes ahí una copia del corpus, no hace falta este script:"
-    echo "   arranca con CORPUS_PATH=\"$CORPUS_DIR\" ./start.sh"
+    # No es un clon, pero puede ser una copia del corpus traída a mano (por
+    # ejemplo desde otra máquina, para ahorrarse la descarga). Si tiene los
+    # directorios de jurisdicción, sirve igual: la app solo los lee.
+    if [ -d "$CORPUS_DIR/es" ]; then
+      normas=$(find "$CORPUS_DIR" -maxdepth 2 -name '*.md' | wc -l)
+      echo "ℹ️  $CORPUS_DIR ya contiene una copia del corpus ($normas normas),"
+      echo "   pero no es un clon de git, así que este script no puede actualizarla."
+      echo "   Para pasar a una copia actualizable: borra ese directorio y vuelve"
+      echo "   a ejecutar ./setup-corpus.sh"
+      exit 0
+    fi
+    echo "❌ $CORPUS_DIR existe, no está vacío y no contiene el corpus."
+    echo "   Muévelo o apunta CORPUS_PATH a otra ruta."
     exit 1
   fi
   echo "Clonando corpus (~1 GB) en $CORPUS_DIR..."

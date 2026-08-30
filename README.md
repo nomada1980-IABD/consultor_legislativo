@@ -39,11 +39,13 @@ La aplicación no necesita estar dentro del repositorio de datos. Busca el corpu
 1. La variable de entorno `CORPUS_PATH`.
 2. `./legalize-es` — lo que crea `setup-corpus.sh`.
 
-Si ya tienes una copia de `legalize-es` en el disco, no la clones otra vez:
+Si ya tienes una copia de `legalize-es` en el disco, no la descargues otra vez. O la apuntas:
 
 ```bash
 echo 'CORPUS_PATH=/ruta/a/legalize-es' >> .env
 ```
+
+…o copias sus directorios de jurisdicción a `./legalize-es`. `setup-corpus.sh` reconoce esa copia y no la toca, pero al no ser un clon de git tampoco puede actualizarla: para eso, bórrala y ejecuta el script.
 
 `GET /api/status` devuelve `corpus_path` e `index_error`, que dicen exactamente qué corpus se cargó o por qué no se pudo.
 
