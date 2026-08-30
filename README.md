@@ -22,8 +22,8 @@ Funciona **sin ninguna clave de API** (búsqueda por palabra clave), y con IA **
 ## Instalación
 
 ```bash
-git clone https://github.com/nomada1980-IABD/consultor-legislativo-es
-cd consultor-legislativo-es
+git clone https://github.com/nomada1980-IABD/consultor_legislativo
+cd consultor_legislativo
 
 ./setup-corpus.sh              # clona legalize-es (~1 GB, profundidad 1)
 pip install -r requirements.txt
