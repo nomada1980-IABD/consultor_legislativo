@@ -19,14 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-DATOS LEGISLATIVOS
-
-Esta licencia cubre únicamente el código de esta aplicación. Los textos
-legislativos que indexa provienen del proyecto Legalize
-(https://github.com/legalize-dev/legalize-es), que los obtiene de la API de
-datos abiertos del BOE. Están sujetos a las condiciones de reutilización del
-BOE, con cita obligatoria de la fuente. Este repositorio no los redistribuye:
-se descargan por separado con ./setup-corpus.sh

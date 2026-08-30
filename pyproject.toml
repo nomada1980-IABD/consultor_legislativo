@@ -1,0 +1,8 @@
+[tool.pytest.ini_options]
+# La suite importa app.py, documents.py y llm.py, que están en la raíz.
+# `python -m pytest` mete el directorio actual en sys.path y por eso funciona
+# en local, pero el ejecutable `pytest` a secas no lo hace: en CI fallaba la
+# recolección con ModuleNotFoundError. Se declara la ruta explícitamente para
+# que ambas formas de invocarlo se comporten igual.
+pythonpath = ["."]
+testpaths = ["tests"]

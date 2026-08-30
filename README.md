@@ -199,6 +199,6 @@ El corpus se consume hoy clonando el repositorio de datos. Legalize ofrece adem�
 
 Los datos legislativos son del proyecto **[Legalize](https://github.com/legalize-dev/legalize-es)**, obtenidos de la API de datos abiertos del BOE y sujetos a las condiciones de reutilización del BOE (cita obligatoria de la fuente). Esta aplicación solo los consume; no los redistribuye.
 
-El código de esta aplicación se publica bajo licencia **MIT** (ver `LICENSE`).
+El código de esta aplicación se publica bajo licencia **MIT** (ver `LICENSE`). La procedencia y las condiciones de los datos están en `NOTICE`.
 
 > **Aviso.** Reproducción automatizada de fuentes oficiales, generada además con modelos de lenguaje. No es un texto legal oficial ni verificado, ni constituye asesoramiento jurídico. Consulta siempre la fuente oficial del BOE antes de presentar cualquier escrito.

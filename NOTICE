@@ -1,0 +1,13 @@
+DATOS LEGISLATIVOS
+
+La licencia MIT de este repositorio cubre únicamente el código de la
+aplicación. Los textos legislativos que indexa provienen del proyecto
+Legalize (https://github.com/legalize-dev/legalize-es), que los obtiene de la
+API de datos abiertos del BOE.
+
+Esos textos están sujetos a las condiciones de reutilización del BOE, con
+cita obligatoria de la fuente. Este repositorio no los redistribuye: se
+descargan por separado con ./setup-corpus.sh
+
+Reproducción automatizada de fuentes oficiales. No es un texto legal oficial
+ni verificado. Consulta siempre la fuente oficial del BOE.
